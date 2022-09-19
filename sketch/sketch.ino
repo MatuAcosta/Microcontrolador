@@ -1,4 +1,4 @@
-// La función setup corre una vez, al prenderse el Arduino
+ // La función setup corre una vez, al prenderse el Arduino
 // o bien al reiniciar mediante el botón reset
   int cont = 0;
   int cant = 1;
@@ -28,12 +28,12 @@ const int G = 15;
 const int N = 7;
 const int SEGMENTOS[N] = {A,B,C,D,E,F,G};
 
+int i = 0;
+
   
 void setup()
 {
     // Inicializa el pin digital 6 como pin de salida
-    //pinMode(16, OUTPUT);
-    pinMode(16,INPUT);
     Serial.begin(9600);
    //inicializamos pines digitales conectados a los segmentos del display.
     for (int i=0; i<N; i++){
@@ -46,27 +46,21 @@ void setup()
 
 void loop()
 {
-  int sensorValue = digitalRead(16);    
-  if(sensorValue == 0){
-    Serial.println(sensorValue);
-    delay(2000);
-    for(int i=0; i<10; i++){
-       if(sensorValue != 0){
-          break;
-       }
-      print(i);
-      delay(1000);// esperar 1000 milisegundos
-    
-     }
-   }
-   else{
-        for (int i=0; i<N; i++){
-        digitalWrite(SEGMENTOS[i], OFF);//apagar
+  int sensorValue = analogRead(A0); 
+  Serial.print(sensorValue);
+  Serial.println();   
+  if(sensorValue < 30){
+    delay(250);
+    i++;
+    if(i > 9){
+      i = 0;
       }
    }
+      print(i);
+      
+   }
   
-  
-}
+
 
 
 void print(int d){
