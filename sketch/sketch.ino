@@ -25,10 +25,12 @@ const int E = 12;
 const int F = 13;
 const int G = 15;
 
+int conmutador = 0;
 const int N = 7;
 const int SEGMENTOS[N] = {A,B,C,D,E,F,G};
-
-int i = 0;
+int var = 0;
+int unidad = 0;
+int decena = 0;
 
   
 void setup()
@@ -36,27 +38,46 @@ void setup()
     // Inicializa el pin digital 6 como pin de salida
     Serial.begin(9600);
    //inicializamos pines digitales conectados a los segmentos del display.
+    pinMode(10, OUTPUT);
+    pinMode(9, OUTPUT);
     for (int i=0; i<N; i++){
       pinMode(SEGMENTOS[i], OUTPUT);
       digitalWrite(SEGMENTOS[i], OFF);//apagar
     }
-    
+      
 }
 
 
 void loop()
 {
+
+  delay(10);
   int sensorValue = analogRead(A0); 
-  Serial.print(sensorValue);
-  Serial.println();   
   if(sensorValue < 30){
-    delay(250);
-    i++;
-    if(i > 9){
-      i = 0;
+    delay(50);
+    unidad++;
+    if(unidad > 9){
+      unidad = 0;
+      decena += 1;
+      if(decena > 9){
+        decena = 0;
+        }
       }
+      
    }
-      print(i);
+   
+  if(conmutador == 0){
+    digitalWrite(10,1); // 10 es el pin de la unidad
+    digitalWrite(9,0); // 9 es el pin de la decena
+    var = unidad;
+    conmutador = 1;
+    }else{
+      digitalWrite(10,0);
+      digitalWrite(9,1);
+      var = decena;
+      conmutador = 0;
+      }
+      print(var);
       
    }
   
