@@ -1,7 +1,5 @@
  // La función setup corre una vez, al prenderse el Arduino
 // o bien al reiniciar mediante el botón reset
-  int cont = 0;
-  int cant = 1;
   //anodo comun 
   const int digitos [10][7] = {
    /*0*/ {0,0,0,0,0,0,1},
@@ -31,6 +29,7 @@ const int SEGMENTOS[N] = {A,B,C,D,E,F,G};
 int var = 0;
 int unidad = 0;
 int decena = 0;
+int cont = 0;
 
   
 void setup()
@@ -40,6 +39,7 @@ void setup()
    //inicializamos pines digitales conectados a los segmentos del display.
     pinMode(10, OUTPUT);
     pinMode(9, OUTPUT);
+    pinMode(5,OUTPUT);
     for (int i=0; i<N; i++){
       pinMode(SEGMENTOS[i], OUTPUT);
       digitalWrite(SEGMENTOS[i], OFF);//apagar
@@ -56,6 +56,7 @@ void loop()
   if(sensorValue < 30){
     delay(50);
     unidad++;
+    cont ++;
     if(unidad > 9){
       unidad = 0;
       decena += 1;
@@ -78,6 +79,15 @@ void loop()
       conmutador = 0;
       }
       print(var);
+
+      if(cont == 20){
+          digitalWrite(5, HIGH);
+          delay(5000);
+          digitalWrite(5, LOW);
+          cont = 0;
+          unidad = 0;
+          decena = 0;
+        }
       
    }
   
