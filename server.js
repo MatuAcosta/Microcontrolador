@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT =  3000;
 const bodyParser = require('body-parser')
-
+let contCajas = 1;
 app.use(express.json());
 app.use(bodyParser.json())
 app.use(express.urlencoded({extended:true}));
@@ -12,29 +12,36 @@ app.get("/", async (req, res) => {
     console.log(arrValues)
     res.status(200).json(arrValues)
 });
-app.post("/post", [checkContador] , (req, res) => {
+app.post("/post", (req, res) => {
+    let {message} = req.body; 
+
     const d = new Date();
-    let obj = {
-      sensor: req.body.sensor,
-      contador:req.body.decena + req.body.unidad,
-      time: d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()
+    if(message === "start"){
+      let obj = {
+        caja: contCajas
+      };
+      obj["start"] = d.toLocaleTimeString();
+      arrValues.push(obj);     
     }
-    arrValues.push(obj);
+    else if (message="finish"){
+      arrValues.forEach(el => {
+          if(el.caja === contCajas){
+            el["finish"] = d.toLocaleTimeString()
+            el["duracion"] = calcTiempo(el.start,el.finish);
+          } 
+      });
+      contCajas++;
+    }   
     console.log(arrValues)
-    res.status(201).send("Data Enviada");
+    res.status(201).send({message:"Data Enviada"});
 })
 app.listen(PORT, () => console.log("Listening on port", PORT));
 
-function checkContador(req,res,next) {
-    let contador = req.body.decena + req.body.unidad
-    let cont = parseInt(contador);
-    if(cont === 20) {
-      arrValues = [] ; 
-      console.log("RELLENANDO CAJA"); 
-      setTimeout(() => {
-        console.log("COMENZANDO SIGUIENTES PRODUCTOS")
-      }, 5000);
-    }else {
-      next();
-    }
+function calcTiempo(start,finish) {
+  let inicio = start.split(':').map(el => parseInt(el));
+  let fin = finish.split(':').map(el => parseInt(el));
+  let difHour = fin[0] - inicio[0];
+  let difMin = fin[1] - inicio[1];
+  let difSec = fin[2] - inicio[2];
+  return difHour + ':'+ difMin +':' + difSec 
 }

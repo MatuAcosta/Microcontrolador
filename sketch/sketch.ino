@@ -1,10 +1,12 @@
  // La función setup corre una vez, al prenderse el Arduino
 // o bien al reiniciar mediante el botón reset
   //anodo comun 
-  #include <ESP8266WiFi.h>
-  #include <ESP8266HTTPClient.h>
-  #include <ArduinoJson.h>
-  #include <WiFiClient.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
+#include <WiFiClient.h>
+
+
   WiFiClient wifiClient;
   const char* ssid = "FiberCorp WiFi887 2.4GHz";
   const char* password = "0041285223";
@@ -66,6 +68,9 @@ void loop(){
   delay(10);
   int sensorValue = analogRead(A0); 
   if(sensorValue < 30){
+    if(decena == 0 && unidad == 0){
+      httpPOST("start");
+    } 
     delay(50);
     unidad++;
     cont ++;
@@ -76,7 +81,6 @@ void loop(){
         decena = 0;
         }
       }
-    httpPOST(String(sensorValue),String(decena),String(unidad));
   }
   if(conmutador == 0){
     digitalWrite(10,1); // 10 es el pin de la unidad
@@ -92,6 +96,7 @@ void loop(){
       print(var);
 
       if(cont == 20){
+          httpPOST("finish");
           digitalWrite(5, HIGH);
           delay(5000);
           digitalWrite(5, LOW);
@@ -102,24 +107,25 @@ void loop(){
   
 }
 
-void httpPOST(String sensor, String decena, String unidad){
+void httpPOST(String timer){
+  int contRepeat = 0;
   HTTPClient http;
   char *url = "http://192.168.0.7:3000/post";
   http.begin(wifiClient,url);
   http.addHeader("Content-Type","application/json");
-  //http.addHeader("Accept","application/json");
   DynamicJsonDocument postMessage(2048);
-  postMessage["sensor"] = sensor;
-  postMessage["decena"] = decena;
-  postMessage["unidad"] = unidad;
+  postMessage["message"] = timer;
   String jsonBody;
   serializeJson(postMessage,jsonBody);
-
   Serial.println(jsonBody);
   int resCode = http.POST(jsonBody);
   Serial.println(resCode);
+  while(resCode != 201 && contRepeat < 3){
+    int resCode = http.POST(jsonBody);
+    Serial.println(resCode);
+    contRepeat++;
+  } 
   String res = http.getString();
-  Serial.println(res);
   parserMessage(res);
   http.end();
 }
@@ -132,7 +138,7 @@ void httpGET(){
   String res = http.getString();
   Serial.println(res);
   parserMessage(res);
-  //http.end();
+  http.end();
 }
 void parserMessage(String res){
   DynamicJsonDocument doc(2048);
@@ -140,11 +146,6 @@ void parserMessage(String res){
   const char* message = doc["message"];
   Serial.println(message);
 }
- 
-  
-
-
-
 void print(int d){
   for (int i=0; i<N; i++){
     digitalWrite(SEGMENTOS[i], digitos[d][i]);
@@ -157,7 +158,6 @@ void print(int d){
 // La función loop corre una y otra vez sin parar
   
   /*
-
  delay(10);
   int sensorValue = analogRead(A0); 
   if(sensorValue < 30){
@@ -186,7 +186,6 @@ void print(int d){
       conmutador = 0;
       }
       print(var);
-
       if(cont == 20){
           digitalWrite(5, HIGH);
           delay(5000);
