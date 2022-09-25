@@ -5,14 +5,21 @@
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 #include <WiFiClient.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
+//definimos NTPClient para poder consultar el tiempo.
+const long utcOffset = -10800;
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP,"pool.ntp.org",utcOffset);
 
 
-  WiFiClient wifiClient;
-  const char* ssid = "FiberCorp WiFi887 2.4GHz";
-  const char* password = "0041285223";
-  char host[] = "192.168.0.7";
-  int port = 3000;
-  const int digitos [10][7] = {
+//definimos wifiClient para conectarnos a una red
+WiFiClient wifiClient;
+const char* ssid = "FiberCorp WiFi887 2.4GHz";
+const char* password = "0041285223";
+char host[] = "192.168.0.7";
+const int digitos [10][7] = {
    /*0*/ {0,0,0,0,0,0,1},
     /*1*/ {1,0,0,1,1,1,1},
     /*2*/ {0,0,1,0,0,1,0},
@@ -61,6 +68,7 @@ void setup()
       pinMode(SEGMENTOS[i], OUTPUT);
       digitalWrite(SEGMENTOS[i], OFF);//apagar
     }
+    timeClient.begin();
 }
 
 
@@ -69,7 +77,8 @@ void loop(){
   int sensorValue = analogRead(A0); 
   if(sensorValue < 30){
     if(decena == 0 && unidad == 0){
-      httpPOST("start");
+      timeClient.update();
+      httpPOST("start",timeClient.getFormattedTime());
     } 
     delay(50);
     unidad++;
@@ -96,7 +105,8 @@ void loop(){
       print(var);
 
       if(cont == 20){
-          httpPOST("finish");
+          timeClient.update();
+          httpPOST("finish",timeClient.getFormattedTime());
           digitalWrite(5, HIGH);
           delay(5000);
           digitalWrite(5, LOW);
@@ -107,7 +117,7 @@ void loop(){
   
 }
 
-void httpPOST(String timer){
+void httpPOST(String timer, String date){
   int contRepeat = 0;
   HTTPClient http;
   char *url = "http://192.168.0.7:3000/post";
@@ -115,6 +125,7 @@ void httpPOST(String timer){
   http.addHeader("Content-Type","application/json");
   DynamicJsonDocument postMessage(2048);
   postMessage["message"] = timer;
+  postMessage["time"] = date;
   String jsonBody;
   serializeJson(postMessage,jsonBody);
   Serial.println(jsonBody);
