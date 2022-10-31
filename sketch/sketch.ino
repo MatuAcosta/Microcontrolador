@@ -18,7 +18,7 @@ NTPClient timeClient(ntpUDP,"pool.ntp.org",utcOffset);
 WiFiClient wifiClient;
 const char* ssid = "FiberCorp WiFi887 2.4GHz";
 const char* password = "0041285223";
-char host[] = "192.168.0.7";
+//char host[] = "192.168.0.7";
 const int digitos [10][7] = {
    /*0*/ {0,0,0,0,0,0,1},
     /*1*/ {1,0,0,1,1,1,1},
@@ -30,8 +30,7 @@ const int digitos [10][7] = {
     /*7*/ {0,0,0,1,1,1,1},
     /*8*/ {0,0,0,0,0,0,0},
     /*9*/ {0,0,0,0,1,0,0}
-
-    };
+};
 const int OFF = HIGH;
 const int A = 4;
 const int B = 0;
@@ -120,7 +119,7 @@ void loop(){
 void httpPOST(String timer, String date){
   int contRepeat = 0;
   HTTPClient http;
-  char *url = "http://192.168.0.7:3000/post";
+  char *url = "http://192.168.0.7:4200/post";
   http.begin(wifiClient,url);
   http.addHeader("Content-Type","application/json");
   DynamicJsonDocument postMessage(2048);
@@ -142,7 +141,7 @@ void httpPOST(String timer, String date){
 }
 void httpGET(){
   HTTPClient http;
-  char *url = "http://192.168.0.7:3000/";
+  char *url = "http://192.168.0.7:4200/";
   http.begin(wifiClient,url);
   int resCode = http.GET();
   Serial.println(resCode);
